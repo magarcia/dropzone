@@ -1283,7 +1283,7 @@ Emitter.prototype.hasListeners = function(event){
       var xhr;
       if (typeof this.options.urlOptions === 'string') {
         xhr = new XMLHttpRequest();
-        xhr.open('get', this.options.urlOptions, true);
+        xhr.open('get', this.options.urlOptions + '?filename=' + files[0].name, true);
         return xhr.onload = (function(_this) {
           return function(e) {};
         })(this);
@@ -1408,9 +1408,7 @@ Emitter.prototype.hasListeners = function(event){
       progressObj = (_ref1 = xhr.upload) != null ? _ref1 : xhr;
       progressObj.onprogress = updateProgress;
       headers = {
-        "Accept": "application/json",
-        "Cache-Control": "no-cache",
-        "X-Requested-With": "XMLHttpRequest"
+        "Accept": "application/json"
       };
       if (this.options.headers) {
         extend(headers, this.options.headers);
