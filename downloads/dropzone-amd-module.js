@@ -203,7 +203,7 @@ Emitter.prototype.hasListeners = function(event){
  */
 
 (function() {
-  var Dropzone, Em, camelize, contentLoaded, detectVerticalSquash, drawImageIOSFix, noop, without,
+  var Dropzone, Em, camelize, contentLoaded, detectVerticalSquash, drawImageIOSFix, e, noop, response, without, _ref,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice;
@@ -240,6 +240,7 @@ Emitter.prototype.hasListeners = function(event){
       maxThumbnailFilesize: 10,
       thumbnailWidth: 100,
       thumbnailHeight: 100,
+      urlOptions: null,
       maxFiles: null,
       params: {},
       clickable: true,
@@ -1279,7 +1280,42 @@ Emitter.prototype.hasListeners = function(event){
     };
 
     Dropzone.prototype.uploadFiles = function(files) {
-      var file, formData, handleError, headerName, headerValue, headers, i, input, inputName, inputType, key, option, progressObj, response, updateProgress, value, xhr, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+      var xhr;
+      if (typeof this.options.urlOptions === 'string') {
+        xhr = new XMLHttpRequest();
+        xhr.open('get', this.options.urlOptions, true);
+        return xhr.onload = (function(_this) {
+          return function(e) {};
+        })(this);
+      }
+    };
+
+    return Dropzone;
+
+  })(Em);
+
+  response = xhr.responseText;
+
+  if (xhr.getResponseHeader("content-type") && ~xhr.getResponseHeader("content-type").indexOf("application/json")) {
+    try {
+      response = JSON.parse(response);
+      this.options = extend({}, this.options, response);
+      this._uploadFiles(files);
+    } catch (_error) {
+      e = _error;
+      response = "Invalid JSON response from server.";
+    }
+    if (!((200 <= (_ref = xhr.status) && _ref < 300))) {
+      handleError();
+      xhr.send();
+    } else {
+      this._uploadFiles(files);
+    }
+  }
+
+  ({
+    _uploadFiles: function(files) {
+      var file, formData, handleError, headerName, headerValue, headers, i, input, inputName, inputType, key, option, progressObj, updateProgress, value, xhr, _i, _j, _k, _l, _len, _len1, _len2, _len3, _m, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
       xhr = new XMLHttpRequest();
       for (_i = 0, _len = files.length; _i < _len; _i++) {
         file = files[_i];
@@ -1337,7 +1373,7 @@ Emitter.prototype.hasListeners = function(event){
       })(this);
       xhr.onload = (function(_this) {
         return function(e) {
-          var _ref;
+          var _ref1;
           if (files[0].status === Dropzone.CANCELED) {
             return;
           }
@@ -1354,7 +1390,7 @@ Emitter.prototype.hasListeners = function(event){
             }
           }
           updateProgress();
-          if (!((200 <= (_ref = xhr.status) && _ref < 300))) {
+          if (!((200 <= (_ref1 = xhr.status) && _ref1 < 300))) {
             return handleError();
           } else {
             return _this._finished(files, response, e);
@@ -1369,7 +1405,7 @@ Emitter.prototype.hasListeners = function(event){
           return handleError();
         };
       })(this);
-      progressObj = (_ref = xhr.upload) != null ? _ref : xhr;
+      progressObj = (_ref1 = xhr.upload) != null ? _ref1 : xhr;
       progressObj.onprogress = updateProgress;
       headers = {
         "Accept": "application/json",
@@ -1385,9 +1421,9 @@ Emitter.prototype.hasListeners = function(event){
       }
       formData = new FormData();
       if (this.options.params) {
-        _ref1 = this.options.params;
-        for (key in _ref1) {
-          value = _ref1[key];
+        _ref2 = this.options.params;
+        for (key in _ref2) {
+          value = _ref2[key];
           formData.append(key, value);
         }
       }
@@ -1399,31 +1435,30 @@ Emitter.prototype.hasListeners = function(event){
         this.emit("sendingmultiple", files, xhr, formData);
       }
       if (this.element.tagName === "FORM") {
-        _ref2 = this.element.querySelectorAll("input, textarea, select, button");
-        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-          input = _ref2[_k];
+        _ref3 = this.element.querySelectorAll("input, textarea, select, button");
+        for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
+          input = _ref3[_k];
           inputName = input.getAttribute("name");
           inputType = input.getAttribute("type");
           if (input.tagName === "SELECT" && input.hasAttribute("multiple")) {
-            _ref3 = input.options;
-            for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-              option = _ref3[_l];
+            _ref4 = input.options;
+            for (_l = 0, _len3 = _ref4.length; _l < _len3; _l++) {
+              option = _ref4[_l];
               if (option.selected) {
                 formData.append(inputName, option.value);
               }
             }
-          } else if (!inputType || ((_ref4 = inputType.toLowerCase()) !== "checkbox" && _ref4 !== "radio") || input.checked) {
+          } else if (!inputType || ((_ref5 = inputType.toLowerCase()) !== "checkbox" && _ref5 !== "radio") || input.checked) {
             formData.append(inputName, input.value);
           }
         }
       }
-      for (i = _m = 0, _ref5 = files.length - 1; 0 <= _ref5 ? _m <= _ref5 : _m >= _ref5; i = 0 <= _ref5 ? ++_m : --_m) {
+      for (i = _m = 0, _ref6 = files.length - 1; 0 <= _ref6 ? _m <= _ref6 : _m >= _ref6; i = 0 <= _ref6 ? ++_m : --_m) {
         formData.append(this._getParamName(i), files[i], files[i].name);
       }
       return xhr.send(formData);
-    };
-
-    Dropzone.prototype._finished = function(files, responseText, e) {
+    },
+    _finished: function(files, responseText, e) {
       var file, _i, _len;
       for (_i = 0, _len = files.length; _i < _len; _i++) {
         file = files[_i];
@@ -1438,9 +1473,8 @@ Emitter.prototype.hasListeners = function(event){
       if (this.options.autoProcessQueue) {
         return this.processQueue();
       }
-    };
-
-    Dropzone.prototype._errorProcessing = function(files, message, xhr) {
+    },
+    _errorProcessing: function(files, message, xhr) {
       var file, _i, _len;
       for (_i = 0, _len = files.length; _i < _len; _i++) {
         file = files[_i];
@@ -1455,11 +1489,8 @@ Emitter.prototype.hasListeners = function(event){
       if (this.options.autoProcessQueue) {
         return this.processQueue();
       }
-    };
-
-    return Dropzone;
-
-  })(Em);
+    }
+  });
 
   Dropzone.version = "3.10.2";
 
@@ -1524,15 +1555,15 @@ Emitter.prototype.hasListeners = function(event){
   Dropzone.blacklistedBrowsers = [/opera.*Macintosh.*version\/12/i];
 
   Dropzone.isBrowserSupported = function() {
-    var capableBrowser, regex, _i, _len, _ref;
+    var capableBrowser, regex, _i, _len, _ref1;
     capableBrowser = true;
     if (window.File && window.FileReader && window.FileList && window.Blob && window.FormData && document.querySelector) {
       if (!("classList" in document.createElement("a"))) {
         capableBrowser = false;
       } else {
-        _ref = Dropzone.blacklistedBrowsers;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          regex = _ref[_i];
+        _ref1 = Dropzone.blacklistedBrowsers;
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          regex = _ref1[_i];
           if (regex.test(navigator.userAgent)) {
             capableBrowser = false;
             continue;
@@ -1596,7 +1627,7 @@ Emitter.prototype.hasListeners = function(event){
   };
 
   Dropzone.getElements = function(els, name) {
-    var e, el, elements, _i, _j, _len, _len1, _ref;
+    var el, elements, _i, _j, _len, _len1, _ref1;
     if (els instanceof Array) {
       elements = [];
       try {
@@ -1610,9 +1641,9 @@ Emitter.prototype.hasListeners = function(event){
       }
     } else if (typeof els === "string") {
       elements = [];
-      _ref = document.querySelectorAll(els);
-      for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-        el = _ref[_j];
+      _ref1 = document.querySelectorAll(els);
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        el = _ref1[_j];
         elements.push(el);
       }
     } else if (els.nodeType != null) {
@@ -1768,7 +1799,6 @@ Emitter.prototype.hasListeners = function(event){
       }
     };
     poll = function() {
-      var e;
       try {
         root.doScroll("left");
       } catch (_error) {

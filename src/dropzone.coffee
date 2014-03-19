@@ -84,6 +84,8 @@ class Dropzone extends Em
     thumbnailWidth: 100
     thumbnailHeight: 100
 
+    urlOptions: null
+
     # Can be used to limit the maximum number of files that will be handled
     # by this Dropzone
     maxFiles: null
@@ -321,7 +323,6 @@ class Dropzone extends Em
               @removeFile file
 
         removeLink.addEventListener "click", removeFileEvent for removeLink in file.previewElement.querySelectorAll("[data-dz-remove]")
-
 
     # Called whenever a file is removed.
     removedfile: (file) ->
@@ -984,6 +985,29 @@ class Dropzone extends Em
   uploadFile: (file) -> @uploadFiles [ file ]
 
   uploadFiles: (files) ->
+    if typeof(@options.urlOptions) is 'string'
+      xhr = new XMLHttpRequest()
+
+      xhr.open('get', @options.urlOptions, true)
+
+      xhr.onload = (e) =>
+	response = xhr.responseText
+
+	if xhr.getResponseHeader("content-type") and ~xhr.getResponseHeader("content-type").indexOf "application/json"
+	  try
+	    response = JSON.parse response
+	    @options = extend { }, @options, response
+	    @_uploadFiles(files)
+	  catch e
+	    response = "Invalid JSON response from server."
+
+	  unless 200 <= xhr.status < 300
+      handleError()
+      xhr.send()
+    else
+      @_uploadFiles(files)
+
+  _uploadFiles: (files) ->
     xhr = new XMLHttpRequest()
 
     # Put the xhr object in the file objects to be able to reference it later.
