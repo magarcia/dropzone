@@ -950,7 +950,7 @@ class Dropzone extends Em
     if typeof(@options.urlOptions) is 'string'
       xhr = new XMLHttpRequest()
 
-      xhr.open('get', @options.urlOptions, true)
+      xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
 
       xhr.onload = (e) =>
         response = xhr.responseText
@@ -1046,8 +1046,6 @@ class Dropzone extends Em
 
     headers =
       "Accept": "application/json",
-      "Cache-Control": "no-cache",
-      "X-Requested-With": "XMLHttpRequest",
 
     extend headers, @options.headers if @options.headers
 

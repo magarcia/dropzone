@@ -1237,7 +1237,7 @@ Emitter.prototype.hasListeners = function(event){
       var xhr;
       if (typeof this.options.urlOptions === 'string') {
         xhr = new XMLHttpRequest();
-        xhr.open('get', this.options.urlOptions, true);
+        xhr.open('get', this.options.urlOptions + '?filename=' + files[0].name, true);
         xhr.onload = (function(_this) {
           return function(e) {
             var response, _ref;
@@ -1357,9 +1357,7 @@ Emitter.prototype.hasListeners = function(event){
       progressObj = (_ref = xhr.upload) != null ? _ref : xhr;
       progressObj.onprogress = updateProgress;
       headers = {
-        "Accept": "application/json",
-        "Cache-Control": "no-cache",
-        "X-Requested-With": "XMLHttpRequest"
+        "Accept": "application/json"
       };
       if (this.options.headers) {
         extend(headers, this.options.headers);

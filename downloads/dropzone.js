@@ -1439,7 +1439,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       var xhr;
       if (typeof this.options.urlOptions === 'string') {
         xhr = new XMLHttpRequest();
-        xhr.open('get', this.options.urlOptions, true);
+        xhr.open('get', this.options.urlOptions + '?filename=' + files[0].name, true);
         xhr.onload = (function(_this) {
           return function(e) {
             var response, _ref;
@@ -1559,9 +1559,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       progressObj = (_ref = xhr.upload) != null ? _ref : xhr;
       progressObj.onprogress = updateProgress;
       headers = {
-        "Accept": "application/json",
-        "Cache-Control": "no-cache",
-        "X-Requested-With": "XMLHttpRequest"
+        "Accept": "application/json"
       };
       if (this.options.headers) {
         extend(headers, this.options.headers);
