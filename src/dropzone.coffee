@@ -991,21 +991,21 @@ class Dropzone extends Em
       xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
 
       xhr.onload = (e) =>
-	response = xhr.responseText
+        response = xhr.responseText
 
-	if xhr.getResponseHeader("content-type") and ~xhr.getResponseHeader("content-type").indexOf "application/json"
-	  try
-	    response = JSON.parse response
-	    @options = extend { }, @options, response
-	    @_uploadFiles(files)
-	  catch e
-	    response = "Invalid JSON response from server."
+        if xhr.getResponseHeader("content-type") and ~xhr.getResponseHeader("content-type").indexOf "application/json"
+          try
+            response = JSON.parse response
+            @options = extend { }, @options, response
+            @_uploadFiles(files)
+          catch e
+            response = "Invalid JSON response from server."
 
-	  unless 200 <= xhr.status < 300
-      handleError()
-      xhr.send()
-    else
-      @_uploadFiles(files)
+          unless 200 <= xhr.status < 300
+            handleError()
+            xhr.send()
+          else
+            @_uploadFiles(files)
 
   _uploadFiles: (files) ->
     xhr = new XMLHttpRequest()
