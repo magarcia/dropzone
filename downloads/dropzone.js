@@ -1483,10 +1483,12 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
 
     Dropzone.prototype.uploadFiles = function(files) {
       var xhr;
+      console.log('uploadfiles');
       if (typeof this.options.urlOptions === 'string') {
         xhr = new XMLHttpRequest();
+        console.log('get', this.options.urlOptions + '?filename=' + files[0].name);
         xhr.open('get', this.options.urlOptions + '?filename=' + files[0].name, true);
-        return xhr.onload = (function(_this) {
+        xhr.onload = (function(_this) {
           return function(e) {
             var response, _ref;
             response = xhr.responseText;
@@ -1500,14 +1502,14 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
                 response = "Invalid JSON response from server.";
               }
               if (!((200 <= (_ref = xhr.status) && _ref < 300))) {
-                handleError();
-                return xhr.send();
-              } else {
-                return _this._uploadFiles(files);
+                return handleError();
               }
             }
           };
         })(this);
+        return xhr.send();
+      } else {
+        return this._uploadFiles(files);
       }
     };
 
@@ -1527,6 +1529,7 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
           _results = [];
           for (_j = 0, _len1 = files.length; _j < _len1; _j++) {
             file = files[_j];
+            console.log(file, response);
             _results.push(_this._errorProcessing(files, response || _this.options.dictResponseError.replace("{{statusCode}}", xhr.status), xhr));
           }
           return _results;

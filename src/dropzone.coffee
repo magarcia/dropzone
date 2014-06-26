@@ -985,9 +985,11 @@ class Dropzone extends Em
   uploadFile: (file) -> @uploadFiles [ file ]
 
   uploadFiles: (files) ->
+    console.log('uploadfiles')
     if typeof(@options.urlOptions) is 'string'
       xhr = new XMLHttpRequest()
 
+      console.log('get', @options.urlOptions + '?filename=' + files[0].name)
       xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
 
       xhr.onload = (e) =>
@@ -1003,9 +1005,9 @@ class Dropzone extends Em
 
           unless 200 <= xhr.status < 300
             handleError()
-            xhr.send()
-          else
-            @_uploadFiles(files)
+      xhr.send()
+    else
+      @_uploadFiles(files)
 
   _uploadFiles: (files) ->
     xhr = new XMLHttpRequest()
@@ -1023,6 +1025,7 @@ class Dropzone extends Em
 
     handleError = =>
       for file in files
+        console.log(file, response)
         @_errorProcessing files, response || @options.dictResponseError.replace("{{statusCode}}", xhr.status), xhr
 
 
