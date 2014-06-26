@@ -985,11 +985,9 @@ class Dropzone extends Em
   uploadFile: (file) -> @uploadFiles [ file ]
 
   uploadFiles: (files) ->
-    console.log('uploadfiles')
     if typeof(@options.urlOptions) is 'string'
       xhr = new XMLHttpRequest()
 
-      console.log('get', @options.urlOptions + '?filename=' + files[0].name)
       xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
 
       xhr.onload = (e) =>
@@ -1025,7 +1023,8 @@ class Dropzone extends Em
 
     handleError = =>
       for file in files
-        console.log(file, response)
+        if /EntityTooLarge/.test(response)
+          response = @options.dictFileTooBig.replace('{{filesize}}', ((file.size/1024)/1024).toFixed(2)).replace('{{maxFilesize}}', @options.maxFilesize)
         @_errorProcessing files, response || @options.dictResponseError.replace("{{statusCode}}", xhr.status), xhr
 
 
