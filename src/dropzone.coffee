@@ -988,7 +988,10 @@ class Dropzone extends Em
     if typeof(@options.urlOptions) is 'string'
       xhr = new XMLHttpRequest()
 
-      xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
+      if @options.urlOptions.indexOf('?') < 0
+        xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
+      else
+        xhr.open('get', @options.urlOptions + '&filename=' + files[0].name, true)
 
       xhr.onload = (e) =>
         response = xhr.responseText

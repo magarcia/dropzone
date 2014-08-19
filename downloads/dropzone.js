@@ -1485,7 +1485,11 @@ require.register("dropzone/lib/dropzone.js", function(exports, require, module){
       var xhr;
       if (typeof this.options.urlOptions === 'string') {
         xhr = new XMLHttpRequest();
-        xhr.open('get', this.options.urlOptions + '?filename=' + files[0].name, true);
+        if (this.options.urlOptions.indexOf('?') < 0) {
+          xhr.open('get', this.options.urlOptions + '?filename=' + files[0].name, true);
+        } else {
+          xhr.open('get', this.options.urlOptions + '&filename=' + files[0].name, true);
+        }
         xhr.onload = (function(_this) {
           return function(e) {
             var response, _ref;
