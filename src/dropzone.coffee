@@ -707,7 +707,7 @@ class Dropzone extends Em
 
   # Returns a nicely formatted filesize
   filesize: (size) ->
-    if      size >= 1024 * 1024 * 1024 * 1024 / 10
+    if size >= 1024 * 1024 * 1024 * 1024 / 10
       size = size / (1024 * 1024 * 1024 * 1024 / 10)
       string = "TiB"
     else if size >= 1024 * 1024 * 1024 / 10
@@ -804,7 +804,36 @@ class Dropzone extends Em
   # This function checks the filesize, and if the file.type passes the
   # `acceptedFiles` check.
   accept: (file, done) ->
-    if file.size > @options.maxFilesize * 1024 * 1024
+    if typeof(@options.urlOptions) is 'string'
+      xhr = new XMLHttpRequest()
+
+      if @options.urlOptions.indexOf('?') < 0
+        xhr.open('get', @options.urlOptions + '?filename=' + file.name, true)
+      else
+        xhr.open('get', @options.urlOptions + '&filename=' + file.name, true)
+
+      xhr.onload = (e) =>
+        response = xhr.responseText
+
+        if xhr.getResponseHeader("content-type") and ~xhr.getResponseHeader("content-type").indexOf "application/json"
+          try
+            response = JSON.parse response
+            @options = extend { }, @options, response
+            @_accept(file, done)
+          catch e
+            response = "Invalid JSON response from server."
+
+          unless 200 <= xhr.status < 300
+            done @options.dictResponseError.replace("{{statusCode}}", xhr.status)
+      xhr.send()
+    else
+        @_accept(file, done)
+        
+
+  _accept: (file, done) ->
+    if @options.maxFilesize <= 0
+        done @options.dictMaxFilesExceeded
+    else if file.size > @options.maxFilesize * 1024 * 1024
       done @options.dictFileTooBig.replace("{{filesize}}", Math.round(file.size / 1024 / 10.24) / 100).replace("{{maxFilesize}}", @options.maxFilesize)
     else unless Dropzone.isValidFile file, @options.acceptedFiles
       done @options.dictInvalidFileType
@@ -985,32 +1014,6 @@ class Dropzone extends Em
   uploadFile: (file) -> @uploadFiles [ file ]
 
   uploadFiles: (files) ->
-    if typeof(@options.urlOptions) is 'string'
-      xhr = new XMLHttpRequest()
-
-      if @options.urlOptions.indexOf('?') < 0
-        xhr.open('get', @options.urlOptions + '?filename=' + files[0].name, true)
-      else
-        xhr.open('get', @options.urlOptions + '&filename=' + files[0].name, true)
-
-      xhr.onload = (e) =>
-        response = xhr.responseText
-
-        if xhr.getResponseHeader("content-type") and ~xhr.getResponseHeader("content-type").indexOf "application/json"
-          try
-            response = JSON.parse response
-            @options = extend { }, @options, response
-            @_uploadFiles(files)
-          catch e
-            response = "Invalid JSON response from server."
-
-          unless 200 <= xhr.status < 300
-            handleError()
-      xhr.send()
-    else
-      @_uploadFiles(files)
-
-  _uploadFiles: (files) ->
     xhr = new XMLHttpRequest()
 
     # Put the xhr object in the file objects to be able to reference it later.
